@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd">
+    <!--1.配置DataSource对象-->
+    <!--1.1引入外部的properties文件-->
+    <context:property-placeholder location="classpath:datasource.properties"/>
+    <!--1.2 bean标签-->
+    <bean class="com.alibaba.druid.pool.DruidDataSource" id="dataSource">
+        <property name="username" value="${datasource.username}"/>
+        <property name="password" value="${datasource.password}"/>
+        <property name="url" value="${datasource.url}"/>
+        <property name="driverClassName" value="${datasource.driverClassName}"/>
+    </bean>
+    <!--2. 配置SqlSessionFactoryBean-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!--2.1 注入datasource-->
+        <property name="dataSource" ref="dataSource"/>
+        <!--2.2 加载映射配置文件-->
+        <property name="mapperLocations" value="classpath:mappers/*.xml"/>
+        <!--2.3 类型别名注册-->
+        <property name="typeAliasesPackage" value="com.atguigu.entity"/>
+        <property name="configuration">
+            <bean class="org.apache.ibatis.session.Configuration">
+                <!--2.4 驼峰映射-->
+                <property name="mapUnderscoreToCamelCase" value="true"/>
+                <!--2.5 全局懒加载-->
+                <property name="lazyLoadingEnabled" value="true"/>
+            </bean>
+        </property>
+        <!--2.4 分页插件-->
+        <property name="plugins">
+            <array>
+                <bean class="com.github.pagehelper.PageInterceptor">
+                    <property name="properties">
+                        <props>
+                            <!-- 设置 reasonable 为 true 表示将页码进行合理化修正。页码的有效范围：1~总页数 -->
+                            <prop key="reasonable">true</prop>
+                            <!-- 数据库方言：同样都是 SQL 语句，拿到不同数据库中，在语法上会有差异 -->
+                            <!-- 默认情况下，按照 MySQL 作为数据库方言来运行 -->
+                            <prop key="helperDialect">mysql</prop>
+                        </props>
+                    </property>
+                </bean>
+            </array>
+        </property>
+    </bean>
+    <!--3. MapperScannerConfigurer-->
+    <bean id="mapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.atguigu.mapper"/>
+    </bean>
+</beans>
